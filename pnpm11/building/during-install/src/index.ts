@@ -403,9 +403,7 @@ async function buildDependency<T extends string> (
   } catch (err: unknown) {
     assert(util.types.isNativeError(err))
     if (depNode.optional) {
-      if (!opts.enableGlobalVirtualStore) {
-        await removeSkippedOptionalDependency(depNode, opts)
-      }
+      await removeSkippedOptionalDependency(depNode, opts)
       // TODO: add parents field to the log
       skippedOptionalDependencyLogger.debug({
         details: err.toString(),
@@ -576,6 +574,9 @@ function containedNodeModulesLink (dir: string, alias: string): string | undefin
  * Remove every installed copy of an optional dependency whose build failed,
  * so a consumer that probes for it finds it absent rather than half-built.
  * The next install finds the directory missing and retries the build.
+ * Under the global virtual store this removes the package directory of the
+ * shared slot, whose lock the caller holds. The slot keeps its lock and its
+ * dependency links, and every project that links it finds the package absent.
  * A hoisted location outside the lockfile directory is never removed.
  * Rejects if a removal fails, so the package is not reported as skipped.
  */
